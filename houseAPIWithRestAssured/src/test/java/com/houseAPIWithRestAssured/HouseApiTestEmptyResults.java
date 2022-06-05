@@ -20,25 +20,32 @@ public class HouseApiTestEmptyResults {
 
 	@BeforeClass
 	public static void setUp() {
+		//Configuring the API URL from properties file
 		RestAssured.baseURI = Properties.getValue("ApiURL");
 	}
 
 	@Test
 	public void houseApi() throws Exception {
+		//Configuring the API URL from properties file
 		RequestSpecification request = RestAssured.given().log().all();
-
+        //Making the request
 		Response response = request.queryParam("price_gte", "450000").queryParam("price_lte", "666000")
 				.queryParam("city", "Los Angeles").get();
+		//The response as string
 		String list = response.getBody().asString();
 		System.out.println(list);
-		JsonPath JP = response.jsonPath();		
+		JsonPath JP = response.jsonPath();
+		//In case there is no results
 		if (list.equalsIgnoreCase("[]")) {
-			System.out.println("There are no houses available with that range in this city");			
+			System.out.println("There are no houses available with that range in this city");
+		//In case the result is OK
 		}else{
 			List<String> allPrices = JP.getList("findAll{it.price <= 666000 & it.price >= 450000}.zip");
 			int numberOfResults = JP.getInt("size()");
+			//Comparing the number of the results with zip's that are related with the right price range
 			if (numberOfResults == allPrices.size()) {
 				System.out.println("The API response is OK");
+				//Validating all elements in case of successful result
 				assertFalse(JP.getJsonObject("id").toString().isEmpty());
 				assertFalse(JP.getJsonObject("mls_id").toString().isEmpty());
 				assertFalse(JP.getJsonObject("mls_listing_id").toString().isEmpty());
@@ -56,6 +63,7 @@ public class HouseApiTestEmptyResults {
 				assertFalse(JP.getJsonObject("price").toString().isEmpty());
 				assertFalse(JP.getJsonObject("square_feet").toString().isEmpty());
 			}else {
+				//if the results are not ok
 				throw new Exception("The API response is NOT OK");
 				
 			}
